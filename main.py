@@ -34,7 +34,7 @@ tamanho_populacao = 100
 tx_mutacao = 0.50
 tx_crossover = 0.15
 tx_tragedia = 0.05
-geracoes_max = 100000
+geracoes_max = 10000
 geracoes_tragedia = 100
 #################
 tx_variacao_fitness = 10
@@ -48,9 +48,8 @@ def calcula_distancia(matriz_distancia, inicio, destino):
 def fitness(individuo):
     score = 0
     for caminho_van in individuo:
-        for i in range(len(caminho_van)):
-            if i < len(caminho_van) - 1:
-                score += calcula_distancia(data_model["matriz_disntancia"], caminho_van[i], caminho_van[i+1])
+        for i in range(len(caminho_van) - 1):
+            score += calcula_distancia(data_model["matriz_disntancia"], caminho_van[i], caminho_van[i+1])
     return score
 
 
@@ -82,6 +81,15 @@ def gerar_individuo(data_model):
 
         individuo.append(van)
     
+    valores = []
+    for van in individuo:
+        for caminho in van:
+            if caminho != 0: 
+                if caminho not in valores:
+                    valores.append(caminho)
+                else:
+                    print(f'erro: caminho duplicado {caminho}') 
+
     return individuo
 
 def mutacao(populacao):
@@ -91,13 +99,64 @@ def mutacao(populacao):
     """
     qtd = math.ceil(tx_mutacao * len(populacao))
     populacao_escolhida = random.choices(populacao, k=qtd)
-    return [ mutacao_flip(individuo) for individuo in populacao_escolhida]
+
+    return [mutacao_inversion(individuo) for individuo in populacao_escolhida]
+
+# seleciona um intervalo e inverte a ordem
+def mutacao_inversion(individuo):
+    novo_individuo = individuo.copy()
+    random.shuffle(novo_individuo)
+    
+    valores = []
+    for van in novo_individuo:
+        for caminho in van:
+            if caminho != 0: 
+                if caminho not in valores:
+                    valores.append(caminho)
+                else:
+                    print(f'erro: caminho duplicado {caminho}') 
+    
+    tamanho_caminho_van: list = []
+    for van in novo_individuo:
+        if len(van) - 2 > 1:
+            caminho = list(range(1, len(van) - 2))
+            tamanho_caminho_van.append(caminho)
+        else:
+            tamanho_caminho_van.append([1])
+
+    tamanho_caminho = 0
+    for index, van in enumerate(novo_individuo):
+        if len(tamanho_caminho_van[index]) > 1:
+            intervalo = sorted(random.sample(tamanho_caminho_van[index], 2))
+            novo_individuo[index] = van[0:intervalo[0]] + van[intervalo[0]:(intervalo[1] + 1)][::-1] + van[ (intervalo[1] + 1) :]
+        tamanho_caminho += len(novo_individuo[index])
+    
+    valores = []
+    for van in novo_individuo:
+        for caminho in van:
+            if caminho != 0: 
+                if caminho not in valores:
+                    valores.append(caminho)
+                else:
+                    print(f'erro: caminho duplicado {caminho}')
+
+
+    return novo_individuo
 
 # flip de valor de gene de um gene aleatório
 def mutacao_flip(individuo):
     novo_individuo = individuo.copy()
     random.shuffle(novo_individuo)
     
+    valores = []
+    for van in novo_individuo:
+        for caminho in van:
+            if caminho != 0: 
+                if caminho not in valores:
+                    valores.append(caminho)
+                else:
+                    print(f'erro: caminho duplicado {caminho}') 
+
     tamanho_caminho_van: list = []
     for van in novo_individuo:
         tamanho_caminho_van.append(len(van) - 2)
@@ -112,6 +171,15 @@ def mutacao_flip(individuo):
             novo_individuo[i + 1].insert(random.randint(1, tamanho_caminho_van[i + 1]), no_local)
             forcar = False
     
+    valores = []
+    for van in novo_individuo:
+        for caminho in van:
+            if caminho != 0: 
+                if caminho not in valores:
+                    valores.append(caminho)
+                else:
+                    print(f'erro: caminho duplicado {caminho}') 
+
     return novo_individuo
 
 def crossover(populacao, geracao):
@@ -160,20 +228,21 @@ def crossover(populacao, geracao):
 # escolhe os indivíduos mais aptos
 
 
+# escolhe os mais aptos e quando chega no ano de sangue escolhe aleatoriamente os individuos que vao morrer por tragédia
 def selecao_com_tragedia(populacao, geracao):
-    nova_populacao = sorted(populacao, key=fitness)
     if (geracao % geracoes_tragedia == 0):
         tamanho_tragedia = math.ceil(tamanho_populacao*tx_tragedia)
-        novos_individuos = [gerar_individuo() for _ in range(
+        novos_individuos = [gerar_individuo(data_model) for _ in range(
             0, tamanho_populacao - tamanho_tragedia)]
-        return nova_populacao[0:tamanho_tragedia] + novos_individuos
+        return sorted(populacao[0:tamanho_tragedia] + novos_individuos, key=fitness)
     else:
+        nova_populacao = sorted(populacao, key=fitness)
         return nova_populacao[0:tamanho_populacao]
 
 
-def selecao(populacao, geracao):
-    nova_populacao = sorted(populacao, key=fitness)
-    return nova_populacao[0:tamanho_populacao]
+# def selecao(populacao, geracao):
+#     nova_populacao = sorted(populacao, key=fitness)
+#     return nova_populacao[0:tamanho_populacao]
 
 
 data_model = create_data_model()
@@ -185,14 +254,15 @@ geracao = 0
 
 fitness0_atual = fitness(populacao[0])
 menor_fitness = fitness0_atual
-while fitness(populacao[-1]) - fitness0_atual >= tx_variacao_fitness and fitness0_atual < menor_fitness and geracao < geracoes_max:
+# fitness(populacao[-1]) - fitness0_atual >= tx_variacao_fitness and fitness0_atual < menor_fitness and 
+while geracao < geracoes_max:
     if fitness0_atual < menor_fitness:
         menor_fitness = fitness0_atual
 
     geracao += 1
     populacao_mutada = mutacao(populacao)
     populacao_crossover = crossover(populacao, geracao)
-    populacao = selecao(populacao_mutada + populacao +
+    populacao = selecao_com_tragedia(populacao_mutada + populacao +
                         populacao_crossover, geracao)
     if geracao % 100 == 0 or (geracao % 10 == 0 and geracao < 100):
         print("---------------- Intermediário: " + str(geracao) + " ----------------")
