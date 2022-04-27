@@ -80,15 +80,6 @@ def gerar_individuo(data_model):
         van.append(0)
 
         individuo.append(van)
-    
-    valores = []
-    for van in individuo:
-        for caminho in van:
-            if caminho != 0: 
-                if caminho not in valores:
-                    valores.append(caminho)
-                else:
-                    print(f'erro: caminho duplicado {caminho}') 
 
     return individuo
 
@@ -97,49 +88,38 @@ def mutacao(populacao):
 
         populacao - Indivíduos da população a serem multados
     """
+    
     qtd = math.ceil(tx_mutacao * len(populacao))
     populacao_escolhida = random.choices(populacao, k=qtd)
+    populacao_mutacao = []
+    
+    if geracao % 2 == 0:
+        for individuo in populacao_escolhida:
+            populacao_mutacao.append(mutacao_inversion(individuo))
+    else:
+        for individuo in populacao_escolhida:
+            populacao_mutacao.append(mutacao_flip(individuo))
 
-    return [mutacao_inversion(individuo) for individuo in populacao_escolhida]
+    return populacao_mutacao
 
 # seleciona um intervalo e inverte a ordem
 def mutacao_inversion(individuo):
     novo_individuo = individuo.copy()
-    random.shuffle(novo_individuo)
     
-    valores = []
+    caminhos_van: list = []
     for van in novo_individuo:
-        for caminho in van:
-            if caminho != 0: 
-                if caminho not in valores:
-                    valores.append(caminho)
-                else:
-                    print(f'erro: caminho duplicado {caminho}') 
-    
-    tamanho_caminho_van: list = []
-    for van in novo_individuo:
-        if len(van) - 2 > 1:
-            caminho = list(range(1, len(van) - 2))
-            tamanho_caminho_van.append(caminho)
+        tamanho_caminho = len(van) - 2 
+        if tamanho_caminho > 1:
+            caminho = list(range(1, tamanho_caminho))
+            caminhos_van.append(caminho)
         else:
-            tamanho_caminho_van.append([1])
+            caminhos_van.append([1])
 
-    tamanho_caminho = 0
     for index, van in enumerate(novo_individuo):
-        if len(tamanho_caminho_van[index]) > 1:
-            intervalo = sorted(random.sample(tamanho_caminho_van[index], 2))
+        if len(caminhos_van[index]) > 1:
+            intervalo = sorted(random.sample(caminhos_van[index], 2))
             novo_individuo[index] = van[0:intervalo[0]] + van[intervalo[0]:(intervalo[1] + 1)][::-1] + van[ (intervalo[1] + 1) :]
-        tamanho_caminho += len(novo_individuo[index])
-    
-    valores = []
-    for van in novo_individuo:
-        for caminho in van:
-            if caminho != 0: 
-                if caminho not in valores:
-                    valores.append(caminho)
-                else:
-                    print(f'erro: caminho duplicado {caminho}')
-
+            print()
 
     return novo_individuo
 
@@ -148,15 +128,6 @@ def mutacao_flip(individuo):
     novo_individuo = individuo.copy()
     random.shuffle(novo_individuo)
     
-    valores = []
-    for van in novo_individuo:
-        for caminho in van:
-            if caminho != 0: 
-                if caminho not in valores:
-                    valores.append(caminho)
-                else:
-                    print(f'erro: caminho duplicado {caminho}') 
-
     tamanho_caminho_van: list = []
     for van in novo_individuo:
         tamanho_caminho_van.append(len(van) - 2)
@@ -169,17 +140,7 @@ def mutacao_flip(individuo):
         if sorteio <= taxa:
             no_local = novo_individuo[i].pop(random.randint(1, tamanho_caminho_van[i]))
             novo_individuo[i + 1].insert(random.randint(1, tamanho_caminho_van[i + 1]), no_local)
-            forcar = False
     
-    valores = []
-    for van in novo_individuo:
-        for caminho in van:
-            if caminho != 0: 
-                if caminho not in valores:
-                    valores.append(caminho)
-                else:
-                    print(f'erro: caminho duplicado {caminho}') 
-
     return novo_individuo
 
 def crossover(populacao, geracao):
@@ -246,18 +207,17 @@ def selecao_com_tragedia(populacao, geracao):
 
 
 data_model = create_data_model()
-print(calcula_distancia(data_model["matriz_disntancia"], 0, 5))
 
 populacao = [gerar_individuo(data_model) for _ in range(0, tamanho_populacao)]
 populacao = sorted(populacao, key=fitness)
 geracao = 0
 
-fitness0_atual = fitness(populacao[0])
-menor_fitness = fitness0_atual
+# fitness0_atual = fitness(populacao[0])
+# menor_fitness = fitness0_atual
 # fitness(populacao[-1]) - fitness0_atual >= tx_variacao_fitness and fitness0_atual < menor_fitness and 
 while geracao < geracoes_max:
-    if fitness0_atual < menor_fitness:
-        menor_fitness = fitness0_atual
+    # if fitness0_atual < menor_fitness:
+    #     menor_fitness = fitness0_atual
 
     geracao += 1
     populacao_mutada = mutacao(populacao)
@@ -269,7 +229,7 @@ while geracao < geracoes_max:
         print(populacao[0])
         print("Taxa de Acerto: " + str(fitness(populacao[0])))
     
-    fitness0_atual = fitness(populacao[0])
+    # fitness0_atual = fitness(populacao[0])
 
 print("---------------- Final " + str(geracao) + " ----------------")
 print(populacao[0])
