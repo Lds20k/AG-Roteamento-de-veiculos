@@ -95,9 +95,13 @@ def mutacao(populacao):
     populacao_mutacao = []
     
     for individuo in populacao_escolhida:
-        populacao_mutacao.append(mutacao_flip(individuo))
-        populacao_mutacao.append(mutacao_swap(individuo))
-        populacao_mutacao.append(mutacao_interval(individuo))
+        mutacao_escolhida = random.choices(["flip","swap","interval"], weights = [0.4, 0.3, 0.3], k = 1)
+        if mutacao_escolhida == "flip":
+            populacao_mutacao.append(mutacao_flip(individuo))
+        elif mutacao_escolhida == "swap":
+            populacao_mutacao.append(mutacao_swap(individuo))
+        else:
+            populacao_mutacao.append(mutacao_interval(individuo))
 
     return populacao_mutacao
 
