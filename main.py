@@ -95,15 +95,15 @@ def mutacao(populacao):
     
     if geracao % 2 == 0:
         for individuo in populacao_escolhida:
-            populacao_mutacao.append(mutacao_inversion(individuo))
+            populacao_mutacao.append(mutacao_interval(individuo))
     else:
         for individuo in populacao_escolhida:
-            populacao_mutacao.append(mutacao_flip(individuo))
+            populacao_mutacao.append(mutacao_interval(individuo))
 
     return populacao_mutacao
 
-# seleciona um intervalo e inverte a ordem
-def mutacao_inversion(individuo):
+# seleciona um intervalo e inverte a ordem ou embaralha
+def mutacao_interval(individuo):
     novo_individuo = individuo.copy()
     
     caminhos_van: list = []
@@ -118,8 +118,15 @@ def mutacao_inversion(individuo):
     for index, van in enumerate(novo_individuo):
         if len(caminhos_van[index]) > 1:
             intervalo = sorted(random.sample(caminhos_van[index], 2))
-            novo_individuo[index] = van[0:intervalo[0]] + van[intervalo[0]:(intervalo[1] + 1)][::-1] + van[ (intervalo[1] + 1) :]
-            print()
+            mutacao_escolhida = random.choices(["scramble","inversion"], weights = [0.5, 0.5], k = 1)
+            mutacao = []
+            if mutacao_escolhida == "scramble":
+                mutacao = van[intervalo[0]:(intervalo[1] + 1)]
+                random.shuffle(mutacao)
+            else:    
+                mutacao = van[intervalo[0]:(intervalo[1] + 1)][::-1]
+            
+            novo_individuo[index] = van[0:intervalo[0]] + mutacao + van[ (intervalo[1] + 1) :]
 
     return novo_individuo
 
