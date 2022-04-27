@@ -30,12 +30,13 @@ def create_data_model():
     return data
 
 
+
 # hiperparâmetros
 tamanho_populacao = 100
-tx_mutacao = 0.50
+tx_mutacao = 0.30
 tx_crossover = 0.15
-tx_tragedia = 0.05
-geracoes_max = 10000
+tx_tragedia = 0.15
+geracoes_max = 1000
 geracoes_tragedia = 100
 #################
 tx_variacao_fitness = 10
@@ -95,15 +96,48 @@ def mutacao(populacao):
     populacao_mutacao = []
     
     for individuo in populacao_escolhida:
-        mutacao_escolhida = random.choices(["flip","swap","interval"], weights = [0.4, 0.3, 0.3], k = 1)
+        mutacao_escolhida = str(random.choices(["flip", "robin_hood", "swap","interval"], weights = [0.25, 0.15, 0.3, 0.3], k = 1)[0])
         if mutacao_escolhida == "flip":
             populacao_mutacao.append(mutacao_flip(individuo))
+        elif mutacao_escolhida == "robin_hood":
+            populacao_mutacao.append(mutacao_robin_hood(individuo))
         elif mutacao_escolhida == "swap":
             populacao_mutacao.append(mutacao_swap(individuo))
         else:
             populacao_mutacao.append(mutacao_interval(individuo))
 
     return populacao_mutacao
+
+# tira alguns caminhos da van que mais caminho e coloca na van com menos
+def mutacao_robin_hood(individuo):
+    novo_individuo = copy.deepcopy(individuo)
+
+    
+    caminhos_van: list = []
+    index_van_maior_caminho = 0
+    index_van_menor_caminho = 0
+
+    for van_index in range(len(novo_individuo)):
+        tamanho_caminho = len(novo_individuo[van_index])
+
+        if tamanho_caminho > 1:
+            caminho = list(range(1, tamanho_caminho - 1))
+            caminhos_van.append(caminho)
+        else:
+            caminhos_van.append([1])
+        
+        if tamanho_caminho > len(novo_individuo[index_van_maior_caminho]):
+            index_van_maior_caminho = van_index 
+        elif tamanho_caminho < len(novo_individuo[index_van_menor_caminho]):
+            index_van_menor_caminho = van_index 
+        
+    indice_caminho_maior = random.choice(caminhos_van[index_van_maior_caminho])
+    indice_caminho_menor = random.choice(caminhos_van[index_van_menor_caminho])
+    caminho_excluido = novo_individuo[index_van_maior_caminho].pop(indice_caminho_maior)
+    novo_individuo[index_van_menor_caminho].insert(indice_caminho_menor, caminho_excluido) 
+        
+
+    return novo_individuo
 
 # seleciona um intervalo e inverte a ordem ou embaralha
 def mutacao_swap(individuo):
@@ -147,7 +181,7 @@ def mutacao_interval(individuo):
     for index, van in enumerate(novo_individuo):
         if len(caminhos_van[index]) > 1:
             intervalo = sorted(random.sample(caminhos_van[index], 2))
-            mutacao_escolhida = random.choices(["scramble","inversion"], weights = [0.5, 0.5], k = 1)
+            mutacao_escolhida = random.choices(["scramble","inversion"], weights = [0.5, 0.5], k = 1)[0]
             mutacao = []
             if mutacao_escolhida == "scramble":
                 mutacao = van[intervalo[0]:(intervalo[1] + 1)]
