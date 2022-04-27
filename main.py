@@ -1,6 +1,7 @@
 from asyncio.windows_events import INFINITE
 import random
 import math
+import copy
 
 
 def create_data_model():
@@ -93,18 +94,42 @@ def mutacao(populacao):
     populacao_escolhida = random.choices(populacao, k=qtd)
     populacao_mutacao = []
     
-    if geracao % 2 == 0:
-        for individuo in populacao_escolhida:
-            populacao_mutacao.append(mutacao_interval(individuo))
-    else:
-        for individuo in populacao_escolhida:
-            populacao_mutacao.append(mutacao_interval(individuo))
+    for individuo in populacao_escolhida:
+        populacao_mutacao.append(mutacao_flip(individuo))
+        populacao_mutacao.append(mutacao_swap(individuo))
+        populacao_mutacao.append(mutacao_interval(individuo))
 
     return populacao_mutacao
 
 # seleciona um intervalo e inverte a ordem ou embaralha
+def mutacao_swap(individuo):
+    novo_individuo = copy.deepcopy(individuo)
+
+    
+    caminhos_van: list = []
+    for van in novo_individuo:
+        tamanho_caminho = len(van) - 1 
+        if tamanho_caminho > 1:
+            caminho = list(range(1, tamanho_caminho))
+            caminhos_van.append(caminho)
+        else:
+            caminhos_van.append([1])
+
+    for index in range(len(novo_individuo)):
+        indice_van1 = index
+        indice_van2 = index - 1
+        
+        indiceCaminho1 = random.choice(caminhos_van[indice_van1])
+        indiceCaminho2 = random.choice(caminhos_van[indice_van2])
+        novo_individuo[indice_van1][indiceCaminho1], novo_individuo[indice_van2][indiceCaminho2] = novo_individuo[indice_van2][indiceCaminho2], novo_individuo[indice_van1][indiceCaminho1] 
+        
+
+    return novo_individuo
+
+
+# seleciona um intervalo e inverte a ordem ou embaralha
 def mutacao_interval(individuo):
-    novo_individuo = individuo.copy()
+    novo_individuo = copy.deepcopy(individuo)
     
     caminhos_van: list = []
     for van in novo_individuo:
@@ -132,7 +157,7 @@ def mutacao_interval(individuo):
 
 # flip de valor de gene de um gene aleatório
 def mutacao_flip(individuo):
-    novo_individuo = individuo.copy()
+    novo_individuo = copy.deepcopy(individuo)
     random.shuffle(novo_individuo)
     
     tamanho_caminho_van: list = []
