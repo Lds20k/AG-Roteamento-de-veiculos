@@ -1,8 +1,6 @@
-from asyncio.windows_events import INFINITE
 import random
 import math
 import copy
-
 
 def create_data_model():
     data = {}
@@ -29,24 +27,20 @@ def create_data_model():
     data["depot"] = 0
     return data
 
-
-
 # hiperparâmetros
-tamanho_populacao = 100
-tx_mutacao = 0.30
-tx_crossover = 0.15
-tx_tragedia = 0.15
+tamanho_populacao = 200
+tx_mutacao = 0.6
+tx_crossover = 0.4
+tx_tragedia = 0.2
 geracoes_max = 1000
 geracoes_tragedia = 100
-#################
-tx_variacao_fitness = 10
 
 
 def calcula_distancia(matriz_distancia, inicio, destino):
     return matriz_distancia[inicio][destino]
 
 # utilidade
-# quando menor melhor (foi o que ela disse)
+# quando menor melhor
 def fitness(individuo):
     score = 0
     for caminho_van in individuo:
@@ -86,11 +80,6 @@ def gerar_individuo(data_model):
     return individuo
 
 def mutacao(populacao):
-    """ Retorna uma populuação mutada
-
-        populacao - Indivíduos da população a serem multados
-    """
-    
     qtd = math.ceil(tx_mutacao * len(populacao))
     populacao_escolhida = random.choices(populacao, k=qtd)
     populacao_mutacao = []
@@ -108,7 +97,7 @@ def mutacao(populacao):
 
     return populacao_mutacao
 
-# tira alguns caminhos da van que mais caminho e coloca na van com menos
+# tira um caminho da van com mais caminhos e coloca em uma van com menos
 def mutacao_robin_hood(individuo):
     novo_individuo = copy.deepcopy(individuo)
 
@@ -139,7 +128,7 @@ def mutacao_robin_hood(individuo):
 
     return novo_individuo
 
-# seleciona um intervalo e inverte a ordem ou embaralha
+# seleciona duas vans e pega indices aleatorios (exceto o começo e o fim que sao depositos) e troca eles
 def mutacao_swap(individuo):
     novo_individuo = copy.deepcopy(individuo)
 
@@ -218,6 +207,10 @@ def crossover(populacao, geracao):
     qtd = funcao_decaimento_crossover*tx_crossover*len(populacao)
     populacao_crossover = []
     populacao_escolhida = random.choices(populacao, k=math.ceil(qtd))
+    
+    if len(populacao_escolhida) < data_model["num_vehicles"]:
+        return populacao
+
     for i in range(len(populacao_escolhida) - 1):
         for j in range(i+1, len(populacao_escolhida)):
             ind1 = populacao_escolhida[i]
@@ -256,9 +249,6 @@ def crossover(populacao, geracao):
 
     return populacao_crossover
 
-# escolhe os indivíduos mais aptos
-
-
 # escolhe os mais aptos e quando chega no ano de sangue escolhe aleatoriamente os individuos que vao morrer por tragédia
 def selecao_com_tragedia(populacao, geracao):
     if (geracao % geracoes_tragedia == 0):
@@ -270,24 +260,12 @@ def selecao_com_tragedia(populacao, geracao):
         nova_populacao = sorted(populacao, key=fitness)
         return nova_populacao[0:tamanho_populacao]
 
-
-# def selecao(populacao, geracao):
-#     nova_populacao = sorted(populacao, key=fitness)
-#     return nova_populacao[0:tamanho_populacao]
-
-
 data_model = create_data_model()
-
 populacao = [gerar_individuo(data_model) for _ in range(0, tamanho_populacao)]
 populacao = sorted(populacao, key=fitness)
 geracao = 0
 
-# fitness0_atual = fitness(populacao[0])
-# menor_fitness = fitness0_atual
-# fitness(populacao[-1]) - fitness0_atual >= tx_variacao_fitness and fitness0_atual < menor_fitness and 
 while geracao < geracoes_max:
-    # if fitness0_atual < menor_fitness:
-    #     menor_fitness = fitness0_atual
 
     geracao += 1
     populacao_mutada = mutacao(populacao)
@@ -295,18 +273,12 @@ while geracao < geracoes_max:
     populacao = selecao_com_tragedia(populacao_mutada + populacao +
                         populacao_crossover, geracao)
     if geracao % 100 == 0 or (geracao % 10 == 0 and geracao < 100):
-        print("---------------- Intermediário: " + str(geracao) + " ----------------")
+        print("---------------- Geração: " + str(geracao) + " ----------------")
         print(populacao[0])
-        print("Taxa de Acerto: " + str(fitness(populacao[0])))
-    
-    # fitness0_atual = fitness(populacao[0])
+        print("Distância percorrida com todas as vans: " + str(fitness(populacao[0])))
 
-print("---------------- Final " + str(geracao) + " ----------------")
-print(populacao[0])
-print("Taxa de Acerto: " + str(fitness(populacao[0])))
-
+# output desejável
 melhor_individuo = populacao[0]
-
 for index, caminho_van in enumerate(melhor_individuo):
     print(f'Van {index + 1}')
     caminho_sem_deposito = [str(numero) for numero in caminho_van]
