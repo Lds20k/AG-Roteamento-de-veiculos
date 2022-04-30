@@ -28,11 +28,11 @@ def create_data_model():
     return data
 
 # hiperparâmetros
-tamanho_populacao = 100
-tx_mutacao = 0.43
+tamanho_populacao = 200
+tx_mutacao = 0.63
 tx_crossover = 0.211
-tx_tragedia = 0.5
-geracoes_max = 5000
+tx_tragedia = 0.7
+geracoes_max = 3000
 geracoes_tragedia = 1000
 
 
@@ -100,13 +100,12 @@ def mutacao_swap(individuo):
         else:
             caminhos_van.append([1])
 
-    for index in range(len(novo_individuo)):
-        indice_van1 = index
-        indice_van2 = index - 1
-        
-        indiceCaminho1 = random.choice(caminhos_van[indice_van1])
-        indiceCaminho2 = random.choice(caminhos_van[indice_van2])
-        novo_individuo[indice_van1][indiceCaminho1], novo_individuo[indice_van2][indiceCaminho2] = novo_individuo[indice_van2][indiceCaminho2], novo_individuo[indice_van1][indiceCaminho1] 
+    indice_van1 = random.choice(range(len(individuo)))
+    indice_van2 = random.choice(range(len(individuo)))
+    
+    indiceCaminho1 = random.choice(caminhos_van[indice_van1])
+    indiceCaminho2 = random.choice(caminhos_van[indice_van2])
+    novo_individuo[indice_van1][indiceCaminho1], novo_individuo[indice_van2][indiceCaminho2] = novo_individuo[indice_van2][indiceCaminho2], novo_individuo[indice_van1][indiceCaminho1] 
         
 
     return novo_individuo
@@ -125,18 +124,19 @@ def mutacao_interval(individuo):
         else:
             caminhos_van.append([1])
 
-    for index, van in enumerate(novo_individuo):
-        if len(caminhos_van[index]) > 1:
-            intervalo = sorted(random.sample(caminhos_van[index], 2))
-            mutacao_escolhida = random.choices(["scramble","inversion"], weights = [0.5, 0.5], k = 1)[0]
-            mutacao = []
-            if mutacao_escolhida == "scramble":
-                mutacao = van[intervalo[0]:(intervalo[1] + 1)]
-                random.shuffle(mutacao)
-            else:    
-                mutacao = van[intervalo[0]:(intervalo[1] + 1)][::-1]
-            
-            novo_individuo[index] = van[0:intervalo[0]] + mutacao + van[ (intervalo[1] + 1) :]
+    index_van = random.choice(range(len(individuo)))
+    van = individuo[index_van]
+    if len(caminhos_van[index_van]) > 1:
+        intervalo = sorted(random.sample(caminhos_van[index_van], 2))
+        mutacao_escolhida = random.choices(["scramble","inversion"], weights = [0.5, 0.5], k = 1)[0]
+        mutacao = []
+        if mutacao_escolhida == "scramble":
+            mutacao = van[intervalo[0]:(intervalo[1] + 1)]
+            random.shuffle(mutacao)
+        else:    
+            mutacao = van[intervalo[0]:(intervalo[1] + 1)][::-1]
+        
+        novo_individuo[index_van] = van[0:intervalo[0]] + mutacao + van[ (intervalo[1] + 1) :]
 
     return novo_individuo
 
@@ -197,40 +197,6 @@ def selecao_com_tragedia(populacao, geracao):
     else:
         nova_populacao = sorted(populacao, key=fitness)
         return nova_populacao[0:tamanho_populacao]
-
-# melhores_parametros = None
-# for i in range(3):
-#     tx_mutacao = 0.4
-#     for j in range(3):
-#         media = 0
-#         for k in range(5):
-#             data_model = create_data_model()
-#             populacao = [gerar_individuo(data_model) for _ in range(0, tamanho_populacao)]
-#             populacao = sorted(populacao, key=fitness)
-#             geracao = 0
-#             while geracao < geracoes_max:
-
-#                 geracao += 1
-#                 populacao_mutada = mutacao(populacao)
-#                 populacao_crossover = crossover(populacao, geracao)
-#                 populacao = selecao_com_tragedia(populacao_mutada + populacao +
-#                                     populacao_crossover, geracao)
-#                 # if geracao % 100 == 0 or (geracao % 10 == 0 and geracao < 100):
-#                 #     print("---------------- Geração: " + str(geracao) + " ----------------")
-#                 #     print(populacao[0])
-#                 #     print("Distância percorrida com todas as vans: " + str(fitness(populacao[0])))
-            
-#             media += fitness(populacao[0])
-#         media /= 5
-
-#         if melhores_parametros == None or melhores_parametros[0] > media:
-#             melhores_parametros = tuple((media, tx_mutacao, tx_crossover, tx_tragedia))
-#             print(melhores_parametros)
-        
-#         tx_mutacao += 0.01
-#     tx_tragedia += 0.1
-#     print(tx_crossover)
-    
 
 data_model = create_data_model()
 populacao = [gerar_individuo(data_model) for _ in range(0, tamanho_populacao)]
