@@ -32,8 +32,8 @@ tamanho_populacao = 200
 tx_mutacao = 0.63
 tx_crossover = 0.211
 tx_tragedia = 0.7
-geracoes_max = 3000
-geracoes_tragedia = 1000
+geracoes_max = 2999
+geracoes_tragedia = 500
 
 
 def calcula_distancia(matriz_distancia, inicio, destino):
@@ -141,13 +141,14 @@ def mutacao_interval(individuo):
     return novo_individuo
 
 def crossover(populacao, geracao):
-    funcao_decaimento_crossover = math.exp(-geracao / 200)
+    funcao_decaimento_crossover =  (geracoes_tragedia - (geracoes_tragedia % geracao) ) / geracoes_tragedia
     qtd = funcao_decaimento_crossover*tx_crossover*len(populacao)
+     
+    if qtd < data_model["num_vehicles"]:
+        qtd = data_model["num_vehicles"] 
+
     populacao_crossover = []
-    populacao_escolhida = random.choices(populacao, k=math.ceil(qtd))
-    
-    if len(populacao_escolhida) < data_model["num_vehicles"]:
-        return populacao
+    populacao_escolhida = random.choices(populacao, k=math.ceil(qtd)) 
 
     for i in range(len(populacao_escolhida) - 1):
         for j in range(i+1, len(populacao_escolhida)):
