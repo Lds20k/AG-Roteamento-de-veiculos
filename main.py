@@ -227,7 +227,7 @@ for index, caminho_van in enumerate(melhor_individuo):
     score = 0
     for i in range(len(caminho_van) - 1):
             score += calcula_distancia(data_model["matriz_disntancia"], caminho_van[i], caminho_van[i+1])
-    print(f'Distância de cada van: {score}',end='\n\n')
+    print(f'Distância da van {index + 1}: {score}',end='\n\n')
     
 print("Distância percorrida com todas as vans: " + str(fitness(populacao[0])))
 
