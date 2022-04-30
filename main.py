@@ -23,7 +23,7 @@ def create_data_model():
         [776, 868, 1552, 560, 674, 1050, 1278, 742, 1084, 810, 1152, 274, 388, 422, 764, 0, 798],   # 15    
         [662, 1210, 754, 1358, 1244, 708, 480, 856, 514, 468, 354, 844, 730, 536, 194, 798, 0],     # 16
     ]
-    data["num_vehicles"] = 3
+    data["num_vehicles"] = 4
     data["depot"] = 0
     return data
 
@@ -85,7 +85,7 @@ def mutacao(populacao):
     populacao_mutacao = []
     
     for individuo in populacao_escolhida:
-        mutacao_escolhida = str(random.choices(["flip", "robin_hood", "swap","interval"], weights = [0.25, 0.15, 0.3, 0.3], k = 1)[0])
+        mutacao_escolhida = str(random.choices(["flip", "robin_hood", "swap","interval"], weights = [0, 0.4, 0.3, 0.3], k = 1)[0])
         if mutacao_escolhida == "flip":
             populacao_mutacao.append(mutacao_flip(individuo))
         elif mutacao_escolhida == "robin_hood":
@@ -283,7 +283,10 @@ for index, caminho_van in enumerate(melhor_individuo):
     print(f'Van {index + 1}')
     caminho_sem_deposito = [str(numero) for numero in caminho_van]
     caminho_sem_deposito = caminho_sem_deposito[1:len(caminho_sem_deposito)-1]
-    print(' -> '.join(caminho_sem_deposito),end='\n\n')
-
+    print(' -> '.join(caminho_sem_deposito),end='\n')
+    score = 0
+    for i in range(len(caminho_van) - 1):
+            score += calcula_distancia(data_model["matriz_disntancia"], caminho_van[i], caminho_van[i+1])
+    print(f'Distância de cada van: {score}',end='\n\n')
+    
 print("Distância percorrida com todas as vans: " + str(fitness(populacao[0])))
-
