@@ -23,17 +23,17 @@ def create_data_model():
         [776, 868, 1552, 560, 674, 1050, 1278, 742, 1084, 810, 1152, 274, 388, 422, 764, 0, 798],   # 15    
         [662, 1210, 754, 1358, 1244, 708, 480, 856, 514, 468, 354, 844, 730, 536, 194, 798, 0],     # 16
     ]
-    data["num_vehicles"] = 3
+    data["num_vehicles"] = 4
     data["depot"] = 0
     return data
 
 # hiperparâmetros
-tamanho_populacao = 200
-tx_mutacao = 0.6
-tx_crossover = 0.4
-tx_tragedia = 0.2
-geracoes_max = 1000
-geracoes_tragedia = 100
+tamanho_populacao = 100
+tx_mutacao = 0.43
+tx_crossover = 0.211
+tx_tragedia = 0.5
+geracoes_max = 5000
+geracoes_tragedia = 1000
 
 
 def calcula_distancia(matriz_distancia, inicio, destino):
@@ -53,26 +53,19 @@ def gerar_individuo(data_model):
     individuo = []
     qtd_caminhos = len(data_model["matriz_disntancia"])
 
-    caminho = list(range(qtd_caminhos))
-    caminho.pop(data_model["depot"])
-    random.shuffle(caminho)
-
-    indices = list(range(len(caminho)))
-    indices = indices[1:len(indices) - 1]
-
-    tamanho = data_model["num_vehicles"] - 1
-    sample = sorted(random.sample(indices, tamanho))
-
-    inicio = 0
-    for i in range(data_model["num_vehicles"]):
+    caminhos = list(range(qtd_caminhos))
+    caminhos.pop(data_model["depot"])
+    random.shuffle(caminhos)
+    
+    for qntd_vans in range(data_model["num_vehicles"], 0, -1):
         van:list = []
 
+        qntd_caminhos_associados = round(len(caminhos)/qntd_vans)
         van.append(0)
-        if i < len(sample):
-            van.extend(caminho[inicio:sample[i]])
-            inicio = sample[i]
-        else:
-            van.extend(caminho[inicio:])
+        
+        for caminhos_index in range(qntd_caminhos_associados-1, -1, -1):
+            van.append(caminhos.pop(caminhos_index))
+
         van.append(0)
 
         individuo.append(van)
@@ -85,48 +78,13 @@ def mutacao(populacao):
     populacao_mutacao = []
     
     for individuo in populacao_escolhida:
-        mutacao_escolhida = str(random.choices(["flip", "robin_hood", "swap","interval"], weights = [0.25, 0.15, 0.3, 0.3], k = 1)[0])
-        if mutacao_escolhida == "flip":
-            populacao_mutacao.append(mutacao_flip(individuo))
-        elif mutacao_escolhida == "robin_hood":
-            populacao_mutacao.append(mutacao_robin_hood(individuo))
-        elif mutacao_escolhida == "swap":
+        mutacao_escolhida = str(random.choices(["swap","interval"], weights = [0.5, 0.5], k = 1)[0])
+        if mutacao_escolhida == "swap":
             populacao_mutacao.append(mutacao_swap(individuo))
         else:
             populacao_mutacao.append(mutacao_interval(individuo))
 
     return populacao_mutacao
-
-# tira um caminho da van com mais caminhos e coloca em uma van com menos
-def mutacao_robin_hood(individuo):
-    novo_individuo = copy.deepcopy(individuo)
-
-    
-    caminhos_van: list = []
-    index_van_maior_caminho = 0
-    index_van_menor_caminho = 0
-
-    for van_index in range(len(novo_individuo)):
-        tamanho_caminho = len(novo_individuo[van_index])
-
-        if tamanho_caminho > 1:
-            caminho = list(range(1, tamanho_caminho - 1))
-            caminhos_van.append(caminho)
-        else:
-            caminhos_van.append([1])
-        
-        if tamanho_caminho > len(novo_individuo[index_van_maior_caminho]):
-            index_van_maior_caminho = van_index 
-        elif tamanho_caminho < len(novo_individuo[index_van_menor_caminho]):
-            index_van_menor_caminho = van_index 
-        
-    indice_caminho_maior = random.choice(caminhos_van[index_van_maior_caminho])
-    indice_caminho_menor = random.choice(caminhos_van[index_van_menor_caminho])
-    caminho_excluido = novo_individuo[index_van_maior_caminho].pop(indice_caminho_maior)
-    novo_individuo[index_van_menor_caminho].insert(indice_caminho_menor, caminho_excluido) 
-        
-
-    return novo_individuo
 
 # seleciona duas vans e pega indices aleatorios (exceto o começo e o fim que sao depositos) e troca eles
 def mutacao_swap(individuo):
@@ -180,26 +138,6 @@ def mutacao_interval(individuo):
             
             novo_individuo[index] = van[0:intervalo[0]] + mutacao + van[ (intervalo[1] + 1) :]
 
-    return novo_individuo
-
-# flip de valor de gene de um gene aleatório
-def mutacao_flip(individuo):
-    novo_individuo = copy.deepcopy(individuo)
-    random.shuffle(novo_individuo)
-    
-    tamanho_caminho_van: list = []
-    for van in novo_individuo:
-        tamanho_caminho_van.append(len(van) - 2)
-
-    for i in range(0, len(novo_individuo) - 1):
-        taxa = (len(novo_individuo[i]) - 2)/ len(data_model["matriz_disntancia"])
-        taxa = int(math.floor(taxa * 100))
-
-        sorteio = random.randint(11, 100)
-        if sorteio <= taxa:
-            no_local = novo_individuo[i].pop(random.randint(1, tamanho_caminho_van[i]))
-            novo_individuo[i + 1].insert(random.randint(1, tamanho_caminho_van[i + 1]), no_local)
-    
     return novo_individuo
 
 def crossover(populacao, geracao):
@@ -260,11 +198,44 @@ def selecao_com_tragedia(populacao, geracao):
         nova_populacao = sorted(populacao, key=fitness)
         return nova_populacao[0:tamanho_populacao]
 
+# melhores_parametros = None
+# for i in range(3):
+#     tx_mutacao = 0.4
+#     for j in range(3):
+#         media = 0
+#         for k in range(5):
+#             data_model = create_data_model()
+#             populacao = [gerar_individuo(data_model) for _ in range(0, tamanho_populacao)]
+#             populacao = sorted(populacao, key=fitness)
+#             geracao = 0
+#             while geracao < geracoes_max:
+
+#                 geracao += 1
+#                 populacao_mutada = mutacao(populacao)
+#                 populacao_crossover = crossover(populacao, geracao)
+#                 populacao = selecao_com_tragedia(populacao_mutada + populacao +
+#                                     populacao_crossover, geracao)
+#                 # if geracao % 100 == 0 or (geracao % 10 == 0 and geracao < 100):
+#                 #     print("---------------- Geração: " + str(geracao) + " ----------------")
+#                 #     print(populacao[0])
+#                 #     print("Distância percorrida com todas as vans: " + str(fitness(populacao[0])))
+            
+#             media += fitness(populacao[0])
+#         media /= 5
+
+#         if melhores_parametros == None or melhores_parametros[0] > media:
+#             melhores_parametros = tuple((media, tx_mutacao, tx_crossover, tx_tragedia))
+#             print(melhores_parametros)
+        
+#         tx_mutacao += 0.01
+#     tx_tragedia += 0.1
+#     print(tx_crossover)
+    
+
 data_model = create_data_model()
 populacao = [gerar_individuo(data_model) for _ in range(0, tamanho_populacao)]
 populacao = sorted(populacao, key=fitness)
 geracao = 0
-
 while geracao < geracoes_max:
 
     geracao += 1
@@ -277,13 +248,19 @@ while geracao < geracoes_max:
         print(populacao[0])
         print("Distância percorrida com todas as vans: " + str(fitness(populacao[0])))
 
+
+
 # output desejável
 melhor_individuo = populacao[0]
 for index, caminho_van in enumerate(melhor_individuo):
     print(f'Van {index + 1}')
     caminho_sem_deposito = [str(numero) for numero in caminho_van]
     caminho_sem_deposito = caminho_sem_deposito[1:len(caminho_sem_deposito)-1]
-    print(' -> '.join(caminho_sem_deposito),end='\n\n')
-
+    print(' -> '.join(caminho_sem_deposito),end='\n')
+    score = 0
+    for i in range(len(caminho_van) - 1):
+            score += calcula_distancia(data_model["matriz_disntancia"], caminho_van[i], caminho_van[i+1])
+    print(f'Distância de cada van: {score}',end='\n\n')
+    
 print("Distância percorrida com todas as vans: " + str(fitness(populacao[0])))
 
