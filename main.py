@@ -210,11 +210,6 @@ while geracao < geracoes_max:
     populacao_crossover = crossover(populacao, geracao)
     populacao = selecao_com_tragedia(populacao_mutada + populacao +
                         populacao_crossover, geracao)
-    if geracao % 100 == 0 or (geracao % 10 == 0 and geracao < 100):
-        print("---------------- Geração: " + str(geracao) + " ----------------")
-        print(populacao[0])
-        print("Distância percorrida com todas as vans: " + str(fitness(populacao[0])))
-
 
 
 # output desejável
