@@ -141,7 +141,7 @@ def mutacao_interval(individuo):
     return novo_individuo
 
 def crossover(populacao, geracao):
-    funcao_decaimento_crossover =  (geracoes_tragedia - (geracoes_tragedia % geracao) ) / geracoes_tragedia
+    funcao_decaimento_crossover =  (geracoes_tragedia - (geracao % geracoes_tragedia ) ) / geracoes_tragedia
     qtd = funcao_decaimento_crossover*tx_crossover*len(populacao)
      
     if qtd < data_model["num_vehicles"]:
