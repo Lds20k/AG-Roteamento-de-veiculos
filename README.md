@@ -1,6 +1,6 @@
 # AG: O problema de roteamento de veículos
 
-## Coma executar
+## Como executar
 
 É necessário ter Python3 instalado e executar em modo depuração(Debug), a branch principal (main) terá um resultado com o tamanho dos caminhos de cada van padronizado e fixado de acordo com o número de entregas existente e o número de vans disponíveis porém a branch "feat/sem-restriao-tamanho" contém um código para pegar a menor quilometragem possivel de todas as vans não se importando com o número de entregas de cada van. Já na branch "feat/quilometragem-tamanho-parecido" tenta selecionar os indivíduos com número de vans parecido e focando na quilometragem geral.
 
