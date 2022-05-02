@@ -4,6 +4,14 @@
 
 É necessário ter Python3 instalado e executar em modo depuração(Debug), a branch principal (main) terá um resultado com o tamanho dos caminhos de cada van padronizado e fixado de acordo com o número de entregas existente e o número de vans disponíveis porém a branch "feat/sem-restriao-tamanho" contém um código para pegar a menor quilometragem possivel de todas as vans não se importando com o número de entregas de cada van. Já na branch "feat/quilometragem-tamanho-parecido" tenta selecionar os indivíduos com número de vans parecido e focando na quilometragem geral.
 
+Além de algumas mudanças na branch main as principais diferenças entre as branches são:
+
+| Nome da branch                      | Mutação Flip | Mutação Robin Hood | Geração de indivíduos                               |
+|-------------------------------------|--------------|--------------------|-----------------------------------------------------|
+| main                                | Não possui   | Não possui         | Deixa padronizado o tamanho dos caminho de cada van |
+| feat/sem-restriao-tamanho           | Possui       | Possui             | Tamanho dos caminhos randomizado entre as vans      |
+| feat/quilometragem-tamanho-parecido | Não possui   | Possui             | Tamanho dos caminhos randomizado entre as vans      |
+
 ## Descrição do problema
 
 Alunos do curso de Gastronomia do SENAC decidiram se juntar e montar uma padaria chamada ***Bolos da Patroa*** focada em bolos e doces para eventos e reuniões. Para fazer esta entrega, a padaria comprou um conjunto de pequenas vans para fazer a entrega.
