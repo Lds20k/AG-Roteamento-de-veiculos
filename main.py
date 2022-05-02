@@ -85,10 +85,8 @@ def mutacao(populacao):
     populacao_mutacao = []
     
     for individuo in populacao_escolhida:
-        mutacao_escolhida = str(random.choices(["flip", "robin_hood", "swap","interval"], weights = [0.25, 0.15, 0.3, 0.3], k = 1)[0])
-        if mutacao_escolhida == "flip":
-            populacao_mutacao.append(mutacao_flip(individuo))
-        elif mutacao_escolhida == "robin_hood":
+        mutacao_escolhida = str(random.choices(["flip", "robin_hood", "swap","interval"], weights = [0.15, 0.3, 0.3], k = 1)[0])
+        if mutacao_escolhida == "robin_hood":
             populacao_mutacao.append(mutacao_robin_hood(individuo))
         elif mutacao_escolhida == "swap":
             populacao_mutacao.append(mutacao_swap(individuo))
@@ -180,26 +178,6 @@ def mutacao_interval(individuo):
             
             novo_individuo[index] = van[0:intervalo[0]] + mutacao + van[ (intervalo[1] + 1) :]
 
-    return novo_individuo
-
-# flip de valor de gene de um gene aleatório
-def mutacao_flip(individuo):
-    novo_individuo = copy.deepcopy(individuo)
-    random.shuffle(novo_individuo)
-    
-    tamanho_caminho_van: list = []
-    for van in novo_individuo:
-        tamanho_caminho_van.append(len(van) - 2)
-
-    for i in range(0, len(novo_individuo) - 1):
-        taxa = (len(novo_individuo[i]) - 2)/ len(data_model["matriz_disntancia"])
-        taxa = int(math.floor(taxa * 100))
-
-        sorteio = random.randint(11, 100)
-        if sorteio <= taxa:
-            no_local = novo_individuo[i].pop(random.randint(1, tamanho_caminho_van[i]))
-            novo_individuo[i + 1].insert(random.randint(1, tamanho_caminho_van[i + 1]), no_local)
-    
     return novo_individuo
 
 def crossover(populacao, geracao):
