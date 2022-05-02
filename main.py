@@ -85,7 +85,7 @@ def mutacao(populacao):
     populacao_mutacao = []
     
     for individuo in populacao_escolhida:
-        mutacao_escolhida = str(random.choices(["flip", "robin_hood", "swap","interval"], weights = [0, 0.4, 0.3, 0.3], k = 1)[0])
+        mutacao_escolhida = str(random.choices(["flip", "robin_hood", "swap","interval"], weights = [0.25, 0.15, 0.3, 0.3], k = 1)[0])
         if mutacao_escolhida == "flip":
             populacao_mutacao.append(mutacao_flip(individuo))
         elif mutacao_escolhida == "robin_hood":
